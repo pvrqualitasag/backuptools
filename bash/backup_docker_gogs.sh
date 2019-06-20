@@ -10,8 +10,9 @@
 
 # ================================ # ======================================= #
 # global constants                 #                                         #
+DRYRUN=TRUE                        # flag to do a dry-run experiment         #
 GOGSCONTAINERNAME=gogs             # name of docker container running gogs   #
-MOVEBCKINTERVAL=week               # interval of moving bcks to bck-server   # 
+MOVEBCKINTERVAL=day                # interval of moving bcks to bck-server   # 
 MOVEBCKDOW=7                       # day of week to move bcks                #
 BCKUSR=u182727                     # user name on backup server              #
 BCKSERVER=u182727.your-backup.de   # hostname of backup server               #
@@ -55,8 +56,11 @@ rm_old_bck () {
   $DOCKER exec $GOGSCONTAINERID $BASH -c "$LS -1 ${GOGSBCKSTEM}-*.zip 2> /dev/null" | \
   while read e
   do
-    log_msg $SCRIPT "Removing old backup: $e"
-    $DOCKER exec $GOGSCONTAINERID $BASH -c "rm $e"
+    log_msg ' * rm_old_bck' "Removing old backup: $e"
+    if [ "$DRYRUN" != "TRUE" ]
+    then
+      $DOCKER exec $GOGSCONTAINERID $BASH -c "rm $e"
+    fi  
     $SLEEP 2
   done
   
@@ -67,8 +71,11 @@ cp_cur_bck () {
   $DOCKER exec $GOGSCONTAINERID $BASH -c "$LS -1 ${GOGSBCKSTEM}-${TDATE}*.zip 2> /dev/null" | \
   while read e
   do 
-    log_msg $SCRIPT "Copying backupfile $e to $BACKUPTARGET"
-    $DOCKER cp $GOGSCONTAINERID:$e $BACKUPTARGET
+    log_msg ' * cp_cur_bck' "Copying backupfile $e to $BACKUPTARGET"
+    if [ "$DRYRUN" != "TRUE" ]
+    then
+      $DOCKER cp $GOGSCONTAINERID:$e $BACKUPTARGET
+    fi  
     $SLEEP 2
   done
   
@@ -81,11 +88,24 @@ mv_cur_bck () {
   while read e
   do
     l_CURSFTPTRG=$SFTPTARGET/`$BASENAME $e`
-    log_msg $SCRIPT "Moving backupfile $e to $l_CURSFTPTRG on backup server"
-    $ECHO -e "put $e $l_CURSFTPTRG" | $SFTP ${BCKUSR}@${BCKSERVER}
+    log_msg ' * mv_cur_bck' "Moving backupfile $e to $l_CURSFTPTRG on backup server"
+    if [ "$DRYRUN" != "TRUE" ]
+    then
+      $ECHO -e "put $e $l_CURSFTPTRG" | $SFTP ${BCKUSR}@${BCKSERVER}
+    fi  
     $SLEEP 2
   done
   
+}
+
+### # run the gogs backup
+run_gogs_bck () {
+  $DOCKER exec -i $GOGSCONTAINERID $BASH -c "export USER=git && cd $GOGSDIR && ./gogs backup"
+}
+
+### # re-set ownership
+reset_own () {
+  $DOCKER exec -i $GOGSCONTAINERID $BASH -c "chown -R git:git /app/gogs/log/*"
 }
 
 ### # ====================================================================== #
@@ -97,8 +117,11 @@ start_msg $SCRIPT
 ### # If an option should be followed by an argument, it should be followed by a ":".
 ### # Notice there is no ":" after "h". The leading ":" suppresses error messages from
 ### # getopts. This is required to get my unrecognized option code to work.
-while getopts :h FLAG; do
+while getopts :dh FLAG; do
   case $FLAG in
+    d) # option -d to do dry-run experiment
+       DRYRUN=TRUE
+    ;;   
 	  h) # option -h shows usage
   	  usage $SCRIPT "Help message" "$SCRIPT"
 	    ;;
@@ -121,11 +144,11 @@ rm_old_bck
 
 ### # run the backup
 log_msg $SCRIPT "Running the backup ..."
-$DOCKER exec -i $GOGSCONTAINERID $BASH -c "export USER=git && cd $GOGSDIR && ./gogs backup"
+run_gogs_bck
 
 ### # re-set owner of log back to git
 log_msg $SCRIPT "Re-setting owner of logs ..."
-$DOCKER exec -i $GOGSCONTAINERID $BASH -c "chown -R git:git /app/gogs/log/*"
+reset_own
 
 ### # copy the backup files created today to a target directory on the same server
 log_msg $SCRIPT "Copy current backups ..."

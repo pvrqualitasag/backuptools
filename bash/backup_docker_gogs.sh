@@ -10,15 +10,18 @@
 
 # ================================ # ======================================= #
 # global constants                 #                                         #
-DRYRUN=TRUE                        # flag to do a dry-run experiment         #
+DRYRUN=FALSE                       # flag to do a dry-run experiment         #
 GOGSCONTAINERNAME=gogs             # name of docker container running gogs   #
+MOVEBCK=TRUE                       # should backups be moved to BCKSERVER    #
 MOVEBCKINTERVAL=day                # interval of moving bcks to bck-server   # 
 MOVEBCKDOW=7                       # day of week to move bcks                #
 BCKUSR=u182727                     # user name on backup server              #
 BCKSERVER=u182727.your-backup.de   # hostname of backup server               #
+DARWINOSNAME=Darwin                # os name on macos                        #
 # -------------------------------- # --------------------------------------- #
 # directories                      #                                         #
-BACKUPTARGET=/backup/gogs/data     # backup target directory on host         #
+#BACKUPTARGET=/backup/gogs/data     # backup target directory on host         #
+BACKUPTARGET=/Users/pvr/Docker/gogs/backup
 SFTPTARGET=gogs/data               # target directory on bck server          #
 INSTALLDIR=/opt/bashtools          # installation dir of bashtools on host   #
 GOGSDIR=/app/gogs                  # installation dir of gogs in container   #
@@ -30,7 +33,8 @@ ECHO=/bin/echo                     # PATH to echo                            #
 SLEEP=/bin/sleep                   # path to sleep                           #
 DATE=/bin/date                     # PATH to date                            #
 BASENAME=/usr/bin/basename         # PATH to basename function               #
-DOCKER=/usr/bin/docker             # PATH to docker executable on host       #
+LINUXDOCKER=/usr/bin/docker        # PATH to docker executable on host       #
+DARWINDOCKER=/usr/local/bin/docker # PATH to docker executable on macos      #
 SFTP=/usr/bin/sftp                 # PATH to sftp program                    #
 TAIL=/usr/bin/tail                 # path to tail                            #
 GOGSPATH=$GOGSDIR/gogs             # PATH to gogs executable in container    #
@@ -48,6 +52,14 @@ TDATE=`$DATE +"%Y%m%d"`
 UTIL=$INSTALLDIR/util/bash_utils.sh
 source $UTIL
 
+# Set variables that depend on os
+OSNAME=`uname`
+if [ "$OSNAME" == "$DARWINOSNAME" ]
+then
+  DOCKER=$DARWINDOCKER
+else
+  DOCKER=$LINUXDOCKER
+fi
 
 ### # ====================================================================== #
 ### # functions
@@ -84,12 +96,12 @@ cp_cur_bck () {
 ### # moving the most recent backup to backup server
 mv_cur_bck () {
   local l_CURSFTPTRG
-  $LS -1tr $BACKUPTARGET/* 2> /dev/null | $TAIL -1 | \
+  $LS -1tr $BACKUPTARGET/*.zip 2> /dev/null | $TAIL -1 | \
   while read e
   do
     l_CURSFTPTRG=$SFTPTARGET/`$BASENAME $e`
     log_msg ' * mv_cur_bck' "Moving backupfile $e to $l_CURSFTPTRG on backup server"
-    if [ "$DRYRUN" != "TRUE" ]
+    if [ "$DRYRUN" != "TRUE" ] && [ "$MOVEBCK" == "TRUE" ]
     then
       $ECHO -e "put $e $l_CURSFTPTRG" | $SFTP ${BCKUSR}@${BCKSERVER}
     fi  
@@ -117,14 +129,17 @@ start_msg $SCRIPT
 ### # If an option should be followed by an argument, it should be followed by a ":".
 ### # Notice there is no ":" after "h". The leading ":" suppresses error messages from
 ### # getopts. This is required to get my unrecognized option code to work.
-while getopts :dh FLAG; do
+while getopts :d:m:h FLAG; do
   case $FLAG in
     d) # option -d to do dry-run experiment
-       DRYRUN=TRUE
+       DRYRUN=$OPTARG
+    ;;
+    m) # option -m to indcate whether backup should be moved
+       MOVEBCK=$OPTARG
     ;;   
 	  h) # option -h shows usage
   	  usage $SCRIPT "Help message" "$SCRIPT"
-	    ;;
+	  ;;
 	  *) # invalid command line arguments
 	    usage $SCRIPT "Invalid command line argument $OPTARG" "$SCRIPT"
 	    ;;

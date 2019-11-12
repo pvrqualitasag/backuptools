@@ -1,12 +1,12 @@
 Package: backuptools
-Title: What the Package Does (One Line, Title Case)
-Version: 0.0.0.9000
+Title: Data Backup Tools
+Version: 0.2.0
 Authors@R: 
     person(given = "Peter",
            family = "von Rohr",
            role = c("aut", "cre"),
            email = "peter.vonrohr@qualitasag.ch")
-Description: What the package does (one paragraph).
+Description: The package provides a set of bash scripts that run backup tasks.
 License: GPL (>= 2)
 Encoding: UTF-8
 Language: en

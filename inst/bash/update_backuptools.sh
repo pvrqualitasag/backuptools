@@ -56,6 +56,7 @@ usage () {
   $ECHO "Usage: $SCRIPT -r <repo_reference> -s <server_name>"
   $ECHO "  where -s <server_name>     --  optional, run package update on single server"
   $ECHO "        -r <repo_reference>  --  optional, update to a branch reference"
+  $ECHO "        -u <user_name>       --  optional, specify alternative username, not zws"
   $ECHO "        -c                   --  optional, specify whether to run the update in singularity"
   $ECHO ""
   exit 1
@@ -118,9 +119,9 @@ update_pkg_backuptools () {
   log_msg 'update_pkg_backuptools' "Running update on $l_SERVER"
   if [ "$REFERENCE" != "" ]
   then
-    $ECHO "R -e 'devtools::install_github(\"pvrqualitasag/backuptools\", ref = \"${REFERENCE}\")'" | ssh zws@$l_SERVER
+    $ECHO "R -e 'devtools::install_github(\"pvrqualitasag/backuptools\", ref = \"${REFERENCE}\")'" | ssh $USERNAME@$l_SERVER
   else
-    $ECHO "R -e 'devtools::install_github(\"pvrqualitasag/backuptools\")'" | ssh zws@$l_SERVER
+    $ECHO "R -e 'devtools::install_github(\"pvrqualitasag/backuptools\")'" | ssh $USERNAME@$l_SERVER
   fi
 }
 
@@ -137,9 +138,10 @@ start_msg
 #+ getopts-parsing, eval=FALSE
 SERVERS=(beverin castor niesen)
 SERVERNAME=""
+USERNAME="zws"
 REFERENCE=""
 CONTAINER=""
-while getopts ":cr:s:h" FLAG; do
+while getopts ":cr:s:u:h" FLAG; do
   case $FLAG in
     h)
       usage "Help message for $SCRIPT"
@@ -152,6 +154,9 @@ while getopts ":cr:s:h" FLAG; do
       ;;
     s)
       SERVERNAME=$OPTARG
+      ;;
+    u)
+      USERNAME=$OPTARG
       ;;
     :)
       usage "-$OPTARG requires an argument"

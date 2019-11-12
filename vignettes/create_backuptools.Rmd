@@ -31,4 +31,21 @@ This package uses a central script called `backup_data.sh` for simple backing up
 More specialised features such as running backups for the gogs-repository or the transfer of backup files to remote backup locations is implemented in their own specific scripts. 
 
 
+## Cronjob Infrastructure
+This section describes the necessary infrastructure to run the backups via a cronjob. The backuptools are installed in a given directory under the users's home directory. Depending on the disk partition architecture, it makes sense to create the backup on a different partition from the source data.
+
+
+### Backup Jobs
+The data to be backedup is specified in backup-job files. These files contain a list of directories to be backedup in a given call to the backup script. In a loop over all directories in all the backup-job files, the data is compressed to gzipped-tar-archives. 
+
+
+### Cronjob
+The cronjob executes a certain run-script which does the loop over all backup-job files. After creating the backups for each directory specified in the backup-jobs, the backup results are moved to a remote backup storage location.
+
+
+## Deployment
+The deployment of the complete set of backuptools is done via `devtools::install_github()` and via a specialised installer-script that is part of the package. 
+
+
+
 

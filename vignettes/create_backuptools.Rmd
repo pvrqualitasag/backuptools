@@ -1,0 +1,34 @@
+---
+title: "Creation of Backuptools"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Creation of Backuptools}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+
+## Disclaimer
+This document describes the creation process of a set of bash scripts all used for doing different sorts of backups.  
+
+
+## Dependencies and Requirements
+Commonly used bash utility functions are kept in a project/package (still to be created) which should be available for the scripts in this package. 
+
+
+## Package Architecture
+This package uses a central script called `backup_data.sh` for simple backing up of data stored under a common directory somewhere in the directory tree. The content of this directory is compressed into a gzipped-tar-achrive and moved to a specified target directory.
+
+
+## Specialiced Functionality
+More specialised features such as running backups for the gogs-repository or the transfer of backup files to remote backup locations is implemented in their own specific scripts. 
+
+
+

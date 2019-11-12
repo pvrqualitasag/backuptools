@@ -44,7 +44,7 @@ The cronjob executes a certain run-script which does the loop over all backup-jo
 
 
 ## Deployment
-The deployment of the complete set of backuptools is done via `devtools::install_github()` and via a specialised installer-script that is part of the package. 
+The deployment of the complete set of backuptools is done via `devtools::install_github()`. The deployment process installs the backuptools package as an ordinary R-package under the user-specific R-library directory. From this package, the required components for the desired backup functionality are copied to a specified installation directory. This installation is done via specific installer-scripts called `install_cron_backup.sh`. 
 
 
 

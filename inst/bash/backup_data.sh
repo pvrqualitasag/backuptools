@@ -33,6 +33,8 @@
 #+ shell-tools, eval=FALSE
 BASENAME=/usr/bin/basename                 # PATH to basename function
 DIRNAME=/usr/bin/dirname                   # PATH to dirname function
+BACKTAR='tar -czf'
+BACKTARV='tar -cvzf'
 
 #' ### Directories
 #+ script-directories, eval=FALSE

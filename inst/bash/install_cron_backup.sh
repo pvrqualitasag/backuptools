@@ -208,7 +208,7 @@ for s in ${INSTALLSCRIPTS[@]}
 do
   check_exist_file_fail "$SCRIPTSOURCE/$s"
   log_msg $SCRIPT " * Install $s to $INSTALLTRG/bash ..."
-  cp -p $SCRIPTSOURCE/$s $INSTALLTRG/bash
+  cat $SCRIPTSOURCE/$s | sed -e "s|__BASHTOOLUTILDIR__|$UTILDIR|g" > $INSTALLTRG/bash/$s
 done
 
 

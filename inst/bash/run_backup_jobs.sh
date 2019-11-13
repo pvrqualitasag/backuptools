@@ -110,7 +110,7 @@ check_exist_dir_create () {
 #' is given by a list of directories that must be backedup together
 run_bjob () {
   local l_JOBFN=$1
-  local l_JOBLABEL=`echo $l_JOBFN | sed -e "s/\.bjob//"`
+  local l_JOBLABEL=`basename $l_JOBFN | sed -e "s/\.bjob//"`
   if [ "$DEBUG" == "TRUE" ];then log_msg 'run_bjob' "Running backup job: $l_JOBLABEL ...";fi
   # check whether a data directory for the job exists
   local l_JOBDATADIR=$BTROOTDIR/data/$l_JOBLABEL

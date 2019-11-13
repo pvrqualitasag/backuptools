@@ -136,7 +136,7 @@ start_msg
 #' getopts. This is required to get my unrecognized option code to work.
 #+ getopts-parsing, eval=FALSE
 DEBUG=""
-while getopts ":a:b:ch" FLAG; do
+while getopts "dh" FLAG; do
   case $FLAG in
     h)
       usage "Help message for $SCRIPT"

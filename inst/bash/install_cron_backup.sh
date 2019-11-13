@@ -134,7 +134,7 @@ start_msg
 #' getopts. This is required to get my unrecognized option code to work.
 #+ getopts-parsing, eval=FALSE
 SCRIPTSOURCE=$(R -e '.libPaths()[1]' --quiet --no-save --slave | cut -d ' ' -f2 | sed -e 's/\"//g')/backuptools/bash
-INSTALLSCRIPTS=(backup_data.sh run_backup.sh)
+INSTALLSCRIPTS=(backup_data.sh run_backup_jobs.sh)
 INSTALLTRG=""
 UTILDIR=""
 while getopts ":s:t:u:h" FLAG; do

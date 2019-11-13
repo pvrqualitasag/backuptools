@@ -123,6 +123,9 @@ update_pkg_backuptools () {
   else
     $ECHO "R -e 'devtools::install_github(\"pvrqualitasag/backuptools\")'" | ssh $USERNAME@$l_SERVER
   fi
+  # installation
+  $ECHO '$(R -e ".libPaths()[1]" --quiet --no-save --slave | cut -d " " -f2 | sed -e "s/\"//g")/backuptools/bash/install_cron_backup.sh -t /home/quagadmin/backup -u /opt/bashtools/util' | ssh $USERNAME@$l_SERVER
+
 }
 
 

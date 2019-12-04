@@ -4,7 +4,9 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of backuptools is to provide a set of bash utilities to do backups
+The goal of backuptools is to provide a set of bash utilities to do backups. Although the repository contains just a few bash-script, the R-package infrastructure is abused for convenience of documentation and deployment.
+
+The package website is available at: https://pvrqualitasag.github.io/backuptools
 
 ## Installation
 

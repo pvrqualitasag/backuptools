@@ -1,19 +1,15 @@
 #!/bin/bash
 #' ---
-#' title: Run Backup Jobs
-#' date:  2019-11-13 07:19:10
+#' title: Get Space Usage On Remote Backup Server
+#' date:  2019-12-04 13:41:49
 #' author: Peter von Rohr
 #' ---
 #' ## Purpose
-#' In the backuptools root directory (parent directory of where this script is
-#' installed), there is a subdirectory called `jobs` which
-#' contains all backup jobs. Each backup job is defined by a single file containing
-#' all the directories that must be backedup in this job. This script takes all the
-#' backup jobs and executes the backup tasks specified by the backup jobs.
+#' Get the space usage no the remote ftp backup server that is used.
 #'
 #' ## Description
-#' In a loop over all backup jobs, the data directories given in all the backup jobs
-#' are backedup to different backup result files.
+#' The command df -h is sent to the remove ftp backup server and results are
+#' shown as output.
 #'
 #' ## Bash Settings
 #+ bash-env-setting, eval=FALSE
@@ -35,7 +31,6 @@ DIRNAME=/usr/bin/dirname                   # PATH to dirname function           
 #' Installation directory of this script
 #+ script-directories, eval=FALSE
 INSTALLDIR=`$DIRNAME ${BASH_SOURCE[0]}`    # installation dir of bashtools on host   #
-BTROOTDIR=`$DIRNAME $INSTALLDIR`           # backup tools root directory             #
 
 #' ### Files
 #' This section stores the name of this script and the
@@ -56,8 +51,9 @@ SERVER=`hostname`                          # put hostname of server in variable 
 usage () {
   local l_MSG=$1
   $ECHO "Usage Error: $l_MSG"
-  $ECHO "Usage: $SCRIPT -d"
-  $ECHO "  where -d (optional)  --  run in debug mode"
+  $ECHO "Usage: $SCRIPT -h -s <remote_ftp_server>"
+  $ECHO "  where -h                      --  shows a usage message (optional)"
+  $ECHO "        -s <remote_ftp_server>  --  remote ftp server address (optional)"
   $ECHO ""
   exit 1
 }
@@ -65,6 +61,7 @@ usage () {
 #' ### Start Message
 #' The following function produces a start message showing the time
 #' when the script started and on which server it was started.
+#+ start-msg-fun, eval=FALSE
 #+ start-msg-fun, eval=FALSE
 start_msg () {
   $ECHO "********************************************************************************"
@@ -94,38 +91,6 @@ log_msg () {
   $ECHO "[${l_RIGHTNOW} -- ${l_CALLER}] $l_MSG"
 }
 
-#' ### Check For Directory Existence
-#' It is checked whether the passed directory exists, if not it is created
-#+ check-exist-dir-create
-check_exist_dir_create () {
-  local l_check_dir=$1
-  if [ ! -d "$l_check_dir" ]
-  then
-    log_msg check_exist_dir_create "CANNOT find directory: $l_check_dir ==> create it"
-    mkdir -p $l_check_dir
-  fi
-
-}
-
-#' ### Running single backup job
-#' Running the backup task for a single backup job where a backup job
-#' is given by a list of directories that must be backedup together
-run_bjob () {
-  local l_JOBFN=$1
-  local l_JOBLABEL=`basename $l_JOBFN | sed -e "s/\.bjob//"`
-  if [ "$DEBUG" == "TRUE" ];then log_msg 'run_bjob' "Running backup job: $l_JOBLABEL ...";fi
-  # check whether a data directory for the job exists
-  local l_JOBDATADIR=$BTROOTDIR/data/$l_JOBLABEL
-  if [ "$DEBUG" == "TRUE" ];then log_msg 'run_bjob' "Setting data directory to: $l_JOBDATADIR ...";fi
-  check_exist_dir_create $l_JOBDATADIR
-  # loop over directories in job file and run the backup
-  cat $l_JOBFN | while read bdir
-  do
-    if [ "$DEBUG" == "TRUE" ];then log_msg 'run_bjob' "Backing up data from: $bdir ...";fi
-    $BTROOTDIR/bash/backup_data.sh -s $bdir -t $l_JOBDATADIR
-  done
-}
-
 
 #' ## Main Body of Script
 #' The main body of the script starts here.
@@ -137,15 +102,14 @@ start_msg
 #' Notice there is no ":" after "h". The leading ":" suppresses error messages from
 #' getopts. This is required to get my unrecognized option code to work.
 #+ getopts-parsing, eval=FALSE
-DEBUG=""
-while getopts "dh" FLAG; do
+SFTPREMOTE=u208153@u208153.your-backup.de
+while getopts ":s:h" FLAG; do
   case $FLAG in
     h)
       usage "Help message for $SCRIPT"
       ;;
-    d)
-      DEBUG="TRUE"
-      ;;
+    s)
+      SFTPREMOTE=$OPTARG
     :)
       usage "-$OPTARG requires an argument"
       ;;
@@ -161,23 +125,14 @@ shift $((OPTIND-1))  #This tells getopts to move on to the next argument.
 #' The following statements are used to check whether required arguments
 #' have been assigned with a non-empty value
 #+ argument-test, eval=FALSE
+if [ "$SFTPREMOTE" == "" ]; then
+  usage "-s <remote_ftp_server_address> cannot be empty"
+fi
 
-#' ## Set working directory
-#' Use the backup root directory as working directory
-#+ set-wd
-cd $BTROOTDIR
-
-
-#' ## Loop Over Backup Jobs
-#' Loop over all backup jobs and do the backups
-#+ bck-loop
-JOBDIR=$BTROOTDIR/job
-if [ "$DEBUG" == "TRUE" ];then log_msg $SCRIPT "Setting job directory to: $JOBDIR ...";fi
-ls -1 $JOBDIR/*.bjob | while read jobfn
-do
-  if [ "$DEBUG" == "TRUE" ];then log_msg $SCRIPT "Current job file: $jobfn ...";fi
-  run_bjob $jobfn
-done
+#' ## Find Space Usage
+#' Send the df-h statement to the remote ftp-server
+#+ df-get-space-usage
+echo "df -h" | sftp $SFTPREMOTE
 
 
 

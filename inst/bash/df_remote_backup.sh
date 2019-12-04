@@ -110,6 +110,7 @@ while getopts ":s:h" FLAG; do
       ;;
     s)
       SFTPREMOTE=$OPTARG
+      ;;
     :)
       usage "-$OPTARG requires an argument"
       ;;

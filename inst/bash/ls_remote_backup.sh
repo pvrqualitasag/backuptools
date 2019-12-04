@@ -47,8 +47,10 @@ SCRIPT=`$BASENAME ${BASH_SOURCE[0]}`       # Set Script Name variable           
 usage () {
   local l_MSG=$1
   $ECHO "Usage Error: $l_MSG"
-  $ECHO "Usage: $SCRIPT -p <backup_path>"
-  $ECHO "  where -p <backup_path>  --  specify the path to the backup directory on the ftp server"
+  $ECHO "Usage: $SCRIPT -h -p <backup_path> -s <remote_ftp_server>"
+  $ECHO "  where -h                      --  shows a usage message (optional)"
+  $ECHO "        -p <backup_path>        --  specify the path to the backup directory on the ftp server (optional)"
+  $ECHO "        -s <remote_ftp_server>  --  remote ftp server address (optional)"
   $ECHO ""
   exit 1
 }
@@ -92,13 +94,17 @@ start_msg
 #+ getopts-parsing, eval=FALSE
 BCKPATH="backup/data"
 VERBOSE="FALSE"
-while getopts ":p:vh" FLAG; do
+SFTPREMOTE=u208153@u208153.your-backup.de
+while getopts ":p:s:vh" FLAG; do
   case $FLAG in
     h)
       usage "Help message for $SCRIPT"
       ;;
     p)
       BCKPATH=$OPTARG
+      ;;
+    s)
+      SFTPREMOTE=$OPTARG
       ;;
     v)
       VERBOSE="TRUE"
@@ -121,6 +127,9 @@ shift $((OPTIND-1))  #This tells getopts to move on to the next argument.
 if [ "$BCKPATH" == "" ]; then
   usage "-p <backup_path> must be specified"
 fi
+if [ "$SFTPREMOTE" == "" ]; then
+  usage "-s <remote_ftp_server_address> cannot be empty"
+fi
 
 
 #' ## Main Directory Listing Statements
@@ -130,9 +139,9 @@ fi
 log_msg $SCRIPT "Listing files under path: $BCKPATH"
 if [ "$VERBOSE" == "TRUE" ]
 then
-  echo "ls -ltra $BCKPATH" | sftp u208153@u208153.your-backup.de
+  echo "ls -ltrah $BCKPATH" | sftp $SFTPREMOTE
 else
-  echo "ls -1tr $BCKPATH" | sftp u208153@u208153.your-backup.de
+  echo "ls -1tr $BCKPATH" | sftp $SFTPREMOTE
 fi
 
 

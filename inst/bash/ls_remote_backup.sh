@@ -66,6 +66,7 @@ start_msg () {
 #' the time when the script ended. This is important to check whether a script
 #' did run successfully to its end.
 #+ end-msg-fun, eval=FALSE
+end_msg () {
   $ECHO "End of $SCRIPT at: "`$DATE +"%Y-%m-%d %H:%M:%S"`
 }
 

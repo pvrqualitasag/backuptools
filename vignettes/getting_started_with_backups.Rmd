@@ -1,0 +1,30 @@
+---
+title: "Getting Started With Backups"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting Started With Backups}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+
+# Preparing Jobs
+All directories that must be backedup in a given job are written to a file. The file has to have extension `.bjob` to be considered as input for the backup script.
+
+
+# Running the Commands
+Because of file permission issues, the backup job itself must be run as root. 
+
+```{bash, eval=FALSE}
+sudo su - -c "/home/quagadmin/backup/bash/run_backup_jobs.sh -d &> /home/quagadmin/backup/log/`date +'%Y%m%d%H%M%S'`_run_backup_jobs.log"
+```
+
+The first part with `sudo su - -c` was taken from https://deanattali.com/2015/05/09/setup-rstudio-shiny-server-digital-ocean/. 
+

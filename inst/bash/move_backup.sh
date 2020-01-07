@@ -17,7 +17,7 @@
 #'
 #' ## Bash Settings
 #+ bash-env-setting, eval=FALSE
-set -o errexit    # exit immediately, if single command exits with non-zero status
+# set -o errexit    # exit immediately, if single command exits with non-zero status
 set -o nounset    # treat unset variables as errors
 set -o pipefail   # return value of pipeline is value of last command to exit with non-zero status
                   #  hence pipe fails if one command in pipe fails
@@ -54,8 +54,10 @@ SCRIPT=`$BASENAME ${BASH_SOURCE[0]}`       # Set Script Name variable           
 usage () {
   local l_MSG=$1
   $ECHO "Usage Error: $l_MSG"
-  $ECHO "Usage: $SCRIPT -w <work_dir>"
-  $ECHO "  where    <work_dir>  --   working directory"
+  $ECHO "Usage: $SCRIPT -d  -j <job_name> -s <remote_server>"
+  $ECHO "  where -d (optional)       --  run in debug mode"
+  $ECHO "        -j <job_name>       --  job name"
+  $ECHO "        -s <remote_server>  --  remote sftp server"
   $ECHO ""
   exit 1
 }

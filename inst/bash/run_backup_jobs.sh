@@ -58,6 +58,7 @@ usage () {
   $ECHO "Usage Error: $l_MSG"
   $ECHO "Usage: $SCRIPT -d"
   $ECHO "  where -d (optional)  --  run in debug mode"
+  $ECHO "        -j <job_name>  --  job name"
   $ECHO ""
   exit 1
 }

@@ -123,6 +123,7 @@ move_bdata () {
 #' Notice there is no ":" after "h". The leading ":" suppresses error messages from
 #' getopts. This is required to get my unrecognized option code to work.
 #+ getopts-parsing, eval=FALSE
+DEBUG=""
 SFTPREMOTE=u208153@u208153.your-backup.de
 while getopts ":j:s:dh" FLAG; do
   case $FLAG in

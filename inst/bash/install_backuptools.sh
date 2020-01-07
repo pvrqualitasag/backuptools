@@ -13,7 +13,7 @@
 # directory paths                  # used as defaults                        #
 INSTALLTRG=/opt/backuptools                                                  #
 # -------------------------------- # --------------------------------------- #
-# prog paths                       # required for cronjob                    #  
+# prog paths                       # required for cronjob                    #
 LS=/bin/ls                         # PATH to ls                              #
 ECHO=/bin/echo                     # PATH to echo                            #
 SLEEP=/bin/sleep                   # path to sleep                           #
@@ -61,7 +61,8 @@ log_msg () {
 install_file () {
   local l_INSTALLFILE=$1
   ### # subdirectory below installation target is taken from installation file
-  local l_INSTALLPATH=$INSTALLTRG/`dirname $l_INSTALLFILE`
+  # local l_INSTALLPATH=$INSTALLTRG/`dirname $l_INSTALLFILE`
+  local l_INSTALLPATH=$INSTALLTRG
   ### # check whether directory $l_INSTALLPATH exists, if not create it
   if [ ! -e "$l_INSTALLPATH" ]
   then
@@ -98,7 +99,7 @@ start_msg
 ### # getopts. This is required to get my unrecognized option code to work.
 while getopts :f:d:t:h: FLAG; do
   case $FLAG in
-    f) # set option "-f" to install a single tool  
+    f) # set option "-f" to install a single tool
       INSTALLFILE=$OPTARG
 	    ;;
 	  d) # set option "-d" to install all files in a directory
@@ -114,7 +115,7 @@ while getopts :f:d:t:h: FLAG; do
 	    usage "Invalid command line argument $OPTARG"
 	    ;;
   esac
-done  
+done
 
 shift $((OPTIND-1))  #This tells getopts to move on to the next argument.
 
@@ -130,7 +131,7 @@ then
   fi
 fi
 ### #  installation file is specified, then it has to exist
-if [ ! -z "$INSTALLFILE" ] 
+if [ ! -z "$INSTALLFILE" ]
 then
   if [ ! -f "$INSTALLFILE" ]
   then
@@ -147,7 +148,7 @@ then
   $MKDIR -p $INSTALLTRG
 fi
 
-### # depending on options that were specified, 
+### # depending on options that were specified,
 ### # install a single file
 if [  ! -z "$INSTALLFILE" ]
 then

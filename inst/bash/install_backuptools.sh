@@ -61,7 +61,6 @@ log_msg () {
 install_file () {
   local l_INSTALLFILE=$1
   ### # subdirectory below installation target is taken from installation file
-  # local l_INSTALLPATH=$INSTALLTRG/`dirname $l_INSTALLFILE`
   local l_INSTALLPATH=$INSTALLTRG
   ### # check whether directory $l_INSTALLPATH exists, if not create it
   if [ ! -e "$l_INSTALLPATH" ]

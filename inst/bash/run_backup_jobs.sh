@@ -138,10 +138,14 @@ start_msg
 #' getopts. This is required to get my unrecognized option code to work.
 #+ getopts-parsing, eval=FALSE
 DEBUG=""
-while getopts "dh" FLAG; do
+JOBNAME=""
+while getopts ":j:dh" FLAG; do
   case $FLAG in
     h)
       usage "Help message for $SCRIPT"
+      ;;
+    j)
+      JOBNAME=$OPTARG
       ;;
     d)
       DEBUG="TRUE"
@@ -173,13 +177,18 @@ cd $BTROOTDIR
 #+ bck-loop
 JOBDIR=$BTROOTDIR/job
 if [ "$DEBUG" == "TRUE" ];then log_msg $SCRIPT "Setting job directory to: $JOBDIR ...";fi
-ls -1 $JOBDIR/*.bjob | while read jobfn
-do
+if [ "$JOBNAME" != "" ]
+then
+  jobfn=$JOBDIR/$JOBNAME
   if [ "$DEBUG" == "TRUE" ];then log_msg $SCRIPT "Current job file: $jobfn ...";fi
   run_bjob $jobfn
-done
-
-
+else
+  ls -1 $JOBDIR/*.bjob | while read jobfn
+  do
+    if [ "$DEBUG" == "TRUE" ];then log_msg $SCRIPT "Current job file: $jobfn ...";fi
+    run_bjob $jobfn
+  done
+fi
 
 
 #' ## End of Script

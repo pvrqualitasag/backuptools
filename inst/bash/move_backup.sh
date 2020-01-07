@@ -34,6 +34,7 @@ DIRNAME=/usr/bin/dirname                   # PATH to dirname function           
 #' Installation directory of this script
 #+ script-directories, eval=FALSE
 INSTALLDIR=`$DIRNAME ${BASH_SOURCE[0]}`    # installation dir of bashtools on host   #
+BTROOTDIR=`$DIRNAME $INSTALLDIR`           # backup tools root directory             #
 
 #' ### Files
 #' This section stores the name of this script and the
@@ -87,19 +88,53 @@ log_msg () {
   $ECHO "[${l_RIGHTNOW} -- ${l_CALLER}] $l_MSG"
 }
 
+#' ### Moving Backup Data
+move_bdata () {
+  local l_JOBFN=$1
+  local l_JOBLABEL=`basename $l_JOBFN | sed -e "s/\.bjob//"`
+  if [ "$DEBUG" == "TRUE" ];then log_msg 'move_bdata' "Moving data for backup job: $l_JOBLABEL ...";fi
+  # define data directory for the job from where data is moved
+  local l_JOBDATADIR=$BTROOTDIR/data/$l_JOBLABEL
+  # check whether the remote directory exists
+  local l_REMOTEDATADIR=backup/data/$l_JOBLABEL
+  echo "ls $l_REMOTEDATADIR" | sftp $SFTPREMOTE  &> tmp_out_ls
+  if [ `grep 'not found' tmp_out_ls | wc -l` != "0" ]
+  then
+    if [ "$DEBUG" == "TRUE" ];then log_msg 'move_bdata' "Cannot find remote data dir: $l_REMOTEDATADIR ==> create it ...";fi
+    echo "mkdir $l_REMOTEDATADIR" | sftp $SFTPREMOTE
+  fi
+  rm tmp_out_ls
+  # move the data
+  ls -1 $l_JOBDATADIR/*.tgz | while read t
+  do
+    if [ "$DEBUG" == "TRUE" ];then log_msg 'move_bdata' "Moving backup data : $t to $l_REMOTEDATADIR ...";fi
+    echo "put $t $l_REMOTEDATADIR" | sftp $SFTPREMOTE
+    sleep 2
+    mv $t $t.moved
+    sleep 2
+  done
+
+}
+
 #' ## Getopts for Commandline Argument Parsing
 #' If an option should be followed by an argument, it should be followed by a ":".
 #' Notice there is no ":" after "h". The leading ":" suppresses error messages from
 #' getopts. This is required to get my unrecognized option code to work.
 #+ getopts-parsing, eval=FALSE
-WORKDIR=/home/backup/data
-while getopts ":w:h" FLAG; do
+SFTPREMOTE=u208153@u208153.your-backup.de
+while getopts ":j:s:dh" FLAG; do
   case $FLAG in
     h)
       usage "Help message for $SCRIPT"
       ;;
-    w)
-      WORKDIR=$OPTARG
+    j)
+      JOBNAME=$OPTARG
+      ;;
+    d)
+      DEBUG="TRUE"
+      ;;
+    s)
+      SFTPREMOTE=$OPTARG
       ;;
     :)
       usage "-$OPTARG requires an argument"
@@ -112,37 +147,36 @@ done
 
 shift $((OPTIND-1))  #This tells getopts to move on to the next argument.
 
-# Check whether required arguments have been defined
-if test "$WORKDIR" == ""; then
-  usage "-w <work_dir> not defined"
-fi
-
-
 
 #' ## Main Body of Script
 #' The main body of the script starts here.
 #+ start-msg, eval=FALSE
 start_msg
 
-#' Save a way current working directory, change to the script-specific
-#' working directory and start moving all backup results
-#+ main-move-loop
+#' ## Set working directory
+#' Use the backup root directory as working directory
+#+ set-wd
 curwd=`pwd`
-cd $WORKDIR
-ls -1 *.tgz | while read t
-do
-  echo " * Moving backup: $t"
-  echo "put $t  backup/data" | sftp u208153@u208153.your-backup.de
-  if [ ! -d "moved" ];then mkdir -p moved;fi
-  echo " * Moving $t to moved directory ..."
-  mv $t moved
-  sleep 2
-done
+cd $BTROOTDIR
 
-#' Print a message about the usage of space on the target sftp-backup server
-#+ print-space-usage
-echo " * Usage of backup server ..."
-echo "df -h"  | sftp u208153@u208153.your-backup.de
+#' ## Loop Over Backup Jobs
+#' Loop over all backup jobs and do the backups
+#+ bck-loop
+JOBDIR=$BTROOTDIR/job
+if [ "$DEBUG" == "TRUE" ];then log_msg $SCRIPT "Setting job directory to: $JOBDIR ...";fi
+if [ "$JOBNAME" != "" ]
+then
+  jobfn=$JOBDIR/$JOBNAME
+  if [ "$DEBUG" == "TRUE" ];then log_msg $SCRIPT "Current job file: $jobfn ...";fi
+  move_bdata $jobfn
+else
+  ls -1 $JOBDIR/*.bjob | while read jobfn
+  do
+    if [ "$DEBUG" == "TRUE" ];then log_msg $SCRIPT "Current job file: $jobfn ...";fi
+    move_bdata $jobfn
+  done
+fi
+
 
 #' Change back to the originally saved working directory
 #+ cd-back
